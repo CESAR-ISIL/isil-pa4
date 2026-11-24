@@ -1,0 +1,217 @@
+{
+  "info": {
+    "name": "PA4 - pedidos-reportes-service (revisiones)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Revisiones - todas",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8083/pedidos-reportes-service/api/v1/pedidos/revisiones",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8083",
+          "path": [
+            "pedidos-reportes-service",
+            "api",
+            "v1",
+            "pedidos",
+            "revisiones"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 JSON', () => { pm.response.to.have.status(200); pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Revisiones - REVISADO",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8083/pedidos-reportes-service/api/v1/pedidos/revisiones?estado=REVISADO",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8083",
+          "path": [
+            "pedidos-reportes-service",
+            "api",
+            "v1",
+            "pedidos",
+            "revisiones"
+          ],
+          "query": [
+            {
+              "key": "estado",
+              "value": "REVISADO"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 y observación', () => { pm.response.to.have.status(200); pm.response.json().forEach(p => { pm.expect(p.revisado).to.eql(true); pm.expect(p.observacion).to.be.a('string'); }); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Revisiones - PENDIENTE",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8083/pedidos-reportes-service/api/v1/pedidos/revisiones?estado=PENDIENTE",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8083",
+          "path": [
+            "pedidos-reportes-service",
+            "api",
+            "v1",
+            "pedidos",
+            "revisiones"
+          ],
+          "query": [
+            {
+              "key": "estado",
+              "value": "PENDIENTE"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 sin observación', () => { pm.response.to.have.status(200); pm.response.json().forEach(p => pm.expect(p).to.not.have.property('observacion')); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Revisiones - estado inválido (400)",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8083/pedidos-reportes-service/api/v1/pedidos/revisiones?estado=ANULADO",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8083",
+          "path": [
+            "pedidos-reportes-service",
+            "api",
+            "v1",
+            "pedidos",
+            "revisiones"
+          ],
+          "query": [
+            {
+              "key": "estado",
+              "value": "ANULADO"
+            }
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('400 ProblemDetail', () => { pm.response.to.have.status(400); pm.expect(pm.response.json().title).to.eql('Parámetro inválido'); });"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Estadísticas de revisiones",
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8083/pedidos-reportes-service/api/v1/pedidos/estadisticas/revisiones",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8083",
+          "path": [
+            "pedidos-reportes-service",
+            "api",
+            "v1",
+            "pedidos",
+            "estadisticas",
+            "revisiones"
+          ]
+        }
+      },
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('200 con totales', () => { pm.response.to.have.status(200); const j = pm.response.json(); pm.expect(j.totalPedidos).to.eql(j.totalRevisados + j.totalPendientes); });"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+digraph PA4 {
+  graph [rankdir=TB, fontname="Helvetica", fontsize=11, nodesep=0.35, ranksep=0.45, pad=0.3, bgcolor="white"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=10, fillcolor="#F4F6F8", color="#5B6770", penwidth=1.1];
+  edge  [fontname="Helvetica", fontsize=9, color="#5B6770"];
+
+  nav [label="Navegador\n(JSP + CSRF)", fillcolor="#FFFFFF"];
+
+  subgraph cluster_sp {
+    label="sistema-pedidos-springboot · :8081 /sistema-pedidos"; style="rounded"; color="#2F6FB0"; fontcolor="#2F6FB0";
+    sec  [label="Spring Security\n(formLogin, roles, CSRF)"];
+    ds   [label="DispatcherServlet"];
+    ctl  [label="SupervisionPedidoController\nGET /supervision/pedidos\nPOST /supervision/pedidos/{id}/revisar (PRG)", fillcolor="#E3EEF9"];
+    sup  [label="SupervisionPedidosService\n(lectura + respaldo local)"];
+    rev  [label="PedidoRevisionService\n@Transactional", fillcolor="#FFF1D6"];
+    repo [label="PedidoRevisionJdbcRepository\nJdbcTemplate · SQL con ?", fillcolor="#FFF1D6"];
+    cli  [label="PedidoReporteClient\n(RestClient · DTO · timeouts)", fillcolor="#E3EEF9"];
+    pctl [label="PedidoController\n(registro de pedidos)"];
+  }
+
+  db [label="MySQL · pedidosdb\npedido (revisado)\npedido_revision (FK + UNIQUE)", shape=cylinder, fillcolor="#E6F4EA", color="#2E7D32"];
+
+  subgraph cluster_rep {
+    label="pedidos-reportes-service · :8083"; style="rounded"; color="#7B3FA0"; fontcolor="#7B3FA0";
+    rctl  [label="PedidoRevisionReporteController\nGET /api/v1/pedidos/revisiones?estado=\nGET /api/v1/pedidos/estadisticas/revisiones", fillcolor="#F1E7F7"];
+    rsrv  [label="PedidoRevisionReporteService\n(valida estado · calcula %)"];
+    rrepo [label="PedidoRevisionReporteJdbcRepository\nNamedParameterJdbcTemplate"];
+  }
+
+  inv [label="inventario-service · :8082\n(Jakarta EE · dependencia externa)", fillcolor="#FDECEA", color="#C62828"];
+
+  nav -> sec -> ds -> ctl;
+  ctl -> rev [label=" POST revisar"];
+  rev -> repo [label=" límite transaccional"];
+  repo -> db [label=" UPDATE pedido + INSERT pedido_revision\n (commit o rollback juntos)", color="#2E7D32", penwidth=1.4];
+  ctl -> sup [label=" GET"];
+  sup -> cli;
+  sup -> rev [style=dashed, label=" respaldo si 8083 cae"];
+  cli -> rctl [label=" HTTP/JSON", color="#7B3FA0", penwidth=1.4];
+  rctl -> rsrv -> rrepo;
+  rrepo -> db [label=" SELECT (solo lectura)", style=dashed];
+  ds -> pctl [style=dotted];
+  pctl -> db [label=" INSERT pedido (JPA)", style=dotted];
+  pctl -> inv [label=" HTTP: reservar stock", style=dotted, color="#C62828"];
+}
